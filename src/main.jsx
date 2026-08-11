@@ -95,6 +95,7 @@ function App() {
   // Auth handlers
   const handleLogin = useCallback((username) => {
     setCurrentUser(username);
+    setView('home');
   }, []);
 
   const handleLogout = useCallback(() => {
@@ -265,7 +266,7 @@ function App() {
     );
   }
 
-  return <HomePage onOpen={openSet} />;
+  return <HomePage onOpen={openSet} onLogout={handleLogout} />;
 }
 
 /* ============================================================
@@ -451,7 +452,7 @@ function UserMenu({ username, onLogout }) {
 /* ============================================================
    首页 (带用户统计)
    ============================================================ */
-function HomePage({ onOpen }) {
+function HomePage({ onOpen, onLogout }) {
   const total = questionSets.reduce((sum, set) => sum + set.questions.length, 0);
   const [user, setUser] = useState(getCurrentUser());
   const progress = user ? getUserProgress(user) : null;
@@ -463,6 +464,7 @@ function HomePage({ onOpen }) {
   const handleLogout = () => {
     logoutUser();
     setUser(null);
+    if (onLogout) onLogout();
   };
 
   const initial = (user || '?').charAt(0).toUpperCase();
