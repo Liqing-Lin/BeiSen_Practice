@@ -375,14 +375,25 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
 .legend.ok i { background: #5a9e7e; }
 .legend.no i { background: #d77a64; }
-.legend.done i { background: var(--ink); }
 .legend.cur i { background: var(--accent); }
 
 .nav-grid {
-  display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
   margin-bottom: 24px;
+  transition: max-height .28s ease;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
 }
-.nav-grid.expanded { grid-template-columns: repeat(8, 1fr); }
+/* 收起状态：固定 4 行高度，超出部分可上下滑动 */
+.nav-grid.collapsed {
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.nav-grid.collapsed::-webkit-scrollbar { width: 5px; }
+.nav-grid.collapsed::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+.nav-grid.collapsed::-webkit-scrollbar-track { background: transparent; }
 .nav-cell {
   aspect-ratio: 1; border-radius: 6px;
   font: 600 12px "DM Mono", monospace;

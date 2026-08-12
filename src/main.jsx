@@ -205,6 +205,7 @@ function App() {
         record={currentRecord}
         bookmarked={practiceState.bookmarks.includes(question.id)}
         answeredMap={practiceState.answered}
+        bookmarks={practiceState.bookmarks}
         showNavigator={showNavigator}
         onToggleNavigator={() => setShowNavigator((v) => !v)}
         onChoose={chooseOption}
@@ -661,13 +662,35 @@ function renderIcon(id) {
    刷题页
    ============================================================ */
 function PracticePage({
-  set, question, index, listLength, selected, record, bookmarked, answeredMap,
+  set, question, index, listLength, selected, record, bookmarked, answeredMap, bookmarks,
   showNavigator, onToggleNavigator, onChoose, onSubmit, onNext, onPrev,
   onJumpTo, onBookmark, onBack, onFinish, mode,
 }) {
   const isCorrect = record === question.answer;
   const progress = ((index + (record ? 1 : 0)) / listLength) * 100;
   const isLast = index === listLength - 1;
+
+  // 答题卡：固定每行 5 题，收起时仅展示 4 行（20 题），超出部分可上下滑动
+  const navRef = useRef(null);
+  const NAV_ROWS = 4;
+  const NAV_COLS = 5;
+  const NAV_GAP = 6;
+  const [navHeight, setNavHeight] = useState(0);
+
+  useEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+    const update = () => {
+      const cell = (el.clientWidth - NAV_GAP * (NAV_COLS - 1)) / NAV_COLS;
+      setNavHeight(cell * NAV_ROWS + NAV_GAP * (NAV_ROWS - 1));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const canExpand = set.questions.length > NAV_COLS * NAV_ROWS;
 
   return (
     <div className="practice-shell">
@@ -782,17 +805,22 @@ function PracticePage({
         <aside className="navigator">
           <div className="nav-header">
             <h4><Grid2X2 size={18} /> 答题卡</h4>
-            <button className="nav-toggle" onClick={onToggleNavigator}>
-              {showNavigator ? '收起' : '展开'}
-            </button>
+            {canExpand && (
+              <button className="nav-toggle" onClick={onToggleNavigator}>
+                {showNavigator ? '收起' : '展开'}
+              </button>
+            )}
           </div>
           <div className="nav-legend">
             <span className="legend ok"><i /> 正确</span>
             <span className="legend no"><i /> 错误</span>
-            <span className="legend done"><i /> 已答</span>
             <span className="legend cur"><i /> 当前</span>
           </div>
-          <div className={`nav-grid ${showNavigator ? 'expanded' : ''}`}>
+          <div
+            ref={navRef}
+            className={`nav-grid ${showNavigator ? '' : 'collapsed'}`}
+            style={{ maxHeight: showNavigator ? undefined : navHeight }}
+          >
             {set.questions.map((q, idx) => {
               const answered = answeredMap[q.id];
               const isCur = q.id === question.id;
@@ -819,7 +847,7 @@ function PracticePage({
             </div>
             <div className="ns-row">
               <span>收藏</span>
-              <b>{set.questions.filter((q) => bookmarked).length}</b>
+              <b>{set.questions.filter((q) => bookmarks.includes(q.id)).length}</b>
             </div>
             <div className="ns-row">
               <span>进度</span>
