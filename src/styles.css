@@ -379,6 +379,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .nav-grid {
   display: grid;
+  position: relative;
   grid-template-columns: repeat(5, 1fr);
   gap: 6px;
   margin-bottom: 24px;

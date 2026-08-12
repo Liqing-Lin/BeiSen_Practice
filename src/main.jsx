@@ -676,12 +676,14 @@ function PracticePage({
   const NAV_COLS = 5;
   const NAV_GAP = 6;
   const [navHeight, setNavHeight] = useState(0);
+  const cellHeightRef = useRef(0);
 
   useEffect(() => {
     const el = navRef.current;
     if (!el) return;
     const update = () => {
       const cell = (el.clientWidth - NAV_GAP * (NAV_COLS - 1)) / NAV_COLS;
+      cellHeightRef.current = cell;
       setNavHeight(cell * NAV_ROWS + NAV_GAP * (NAV_ROWS - 1));
     };
     update();
@@ -691,6 +693,25 @@ function PracticePage({
   }, []);
 
   const canExpand = set.questions.length > NAV_COLS * NAV_ROWS;
+
+  // 首次进入或切换题目时：页面回到顶部；答题卡滚动到当前题所在行，使其在顶部呈现
+  const questionId = question.id;
+  const questionRef = useRef(null);
+  useEffect(() => {
+    if (questionRef.current !== questionId) {
+      questionRef.current = questionId;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const navEl = navRef.current;
+      if (navEl && !showNavigator) {
+        // 按题目 id 在答题卡全集中的位置定位格子，offsetTop 即该行顶部，滚动精确无偏差
+        const curIdx = set.questions.findIndex((q) => q.id === question.id);
+        const curCell = curIdx >= 0 ? navEl.children[curIdx] : null;
+        if (curCell) {
+          navEl.scrollTo({ top: curCell.offsetTop, behavior: 'smooth' });
+        }
+      }
+    }
+  }, [questionId, index, showNavigator]);
 
   return (
     <div className="practice-shell">
